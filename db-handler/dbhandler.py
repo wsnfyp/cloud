@@ -24,6 +24,14 @@ class DatabaseHandler:
         except sqlite3.Error as e:
             print(f"[ERROR]: Can't fetch data: {e}")
             return None
+    
+    def update_dataset(self, table_name, data: tuple):
+        try:
+            print("[INFO]: Updating Dataset...")
+            self.execute_query(f"INSERT INTO {table_name} (datetime, temperature, relative_humidity, rain, surface_pressure, soil_moisture) VALUES (?, ?, ?, ?, ?, ?)", 
+                               (int(time.time()), data[0], data[1], data[2], data[3], data[4]))
+        except sqlite3.Error as e:
+            print(f"[ERROR]: Can't add row: {e}")
         
     def update_predictions(self, table_name, predictions: tuple):
         try:
