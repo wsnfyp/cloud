@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Flood Prediction</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script type="module" src="node_modules/@material/web/all.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html"><i class="material-icons">home</i> Home</a>
+            <a href="dashboard.html"><i class="material-icons">dashboard</i> Dashboard</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Flood Prediction Dashboard</h1>
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3><i class="material-icons">schedule</i> 24hr Forecast</h3>
+                <p id="24hr-forecast">Loading...</p>
+            </div>
+            <div class="card">
+                <h3><i class="material-icons">schedule</i> 48hr Forecast</h3>
+                <p id="48hr-forecast">Loading...</p>
+            </div>
+            <div class="card">
+                <h3><i class="material-icons">water</i> Water Level</h3>
+                <p id="water-level">Loading...</p>
+            </div>
+            <div class="card">
+                <h3><i class="material-icons">waves</i> Water Flow</h3>
+                <p id="water-flow">Loading...</p>
+            </div>
+            <div class="card">
+                <h3><i class="material-icons">thermostat</i> Temperature</h3>
+                <p id="temperature">Loading...</p>
+            </div>
+            <div class="card">
+                <h3><i class="material-icons">opacity</i> Humidity</h3>
+                <p id="humidity">Loading...</p>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-container">
+            <canvas id="forecast-chart"></canvas>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="scripts/main.js"></script>
+</body>
+</html>
