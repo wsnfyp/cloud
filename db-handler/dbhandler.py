@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import time
 
 class DatabaseHandler:
     def __init__(self, db_name):
@@ -26,8 +27,9 @@ class DatabaseHandler:
         
     def update_predictions(self, table_name, predictions: tuple):
         try:
-            self.execute_query(f"INSERT INTO {table_name} (name, age) VALUES (?, ?)", (name, age))
-            print("[INFO]: Row added successfully.")
+            print("[INFO]: Updating Predictions...")
+            self.execute_query(f"INSERT INTO {table_name} (datetime, prediction_24, prediction_48) VALUES (?, ?, ?)", 
+                               (int(time.time()), predictions[0], predictions[1]))
         except sqlite3.Error as e:
             print(f"[ERROR]: Can't add row: {e}")
 
@@ -37,3 +39,6 @@ class DatabaseHandler:
             print("[INFO]: Database connection closed.")
         else:
             print("[ERROR]: No database connection to close.")
+    
+    def __del__(self):
+        self.close()
