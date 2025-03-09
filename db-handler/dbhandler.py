@@ -19,7 +19,7 @@ class DatabaseHandler:
 
     def get_last_entries(self, table_name, n=1):
         try:
-            self.cursor.execute(f"SELECT * FROM {table_name} ORDER BY datetime DESC LIMIT {n}")
+            self.cursor.execute(f"SELECT * FROM {table_name} ORDER BY datetime LIMIT {n}")
             return self.cursor.fetchall()
         except sqlite3.Error as e:
             print(f"[ERROR]: Can't fetch data: {e}")
