@@ -1,12 +1,16 @@
 import numpy as np
 import pandas as pd
 import joblib
+import os
+import sys
 from tensorflow.keras.models import load_model
 # from fastapi import FastAPI
 from pydantic import BaseModel
 import time
 
 import json
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../db-handler')))
 import dbhandler
 
 # Initialize FastAPI
@@ -15,11 +19,11 @@ import dbhandler
 database_handler = dbhandler.DatabaseHandler("../db-handler/dataset.db")
 
 # Load models
-model_24 = load_model("./flood_prediction_24h.keras")
-model_48 = load_model("./flood_prediction_48h.keras")
+model_24 = load_model("../predictor/flood_prediction_24h.keras")
+model_48 = load_model("../predictor/flood_prediction_48h.keras")
 
 # Load scaler
-scaler = joblib.load("./scaler.pkl")
+scaler = joblib.load("../predictor/scaler.pkl")
 
 def predict_flood(data):
     # global rolling_data
@@ -45,15 +49,6 @@ def predict_flood(data):
     prediction_24 = model_24.predict(lstm_input)
     prediction_48 = model_48.predict(lstm_input)
 
-    # Save updated rolling data for future use
-    rolling_data.to_csv("last_29_days.csv", index=False)
-
-    # Define risk levels
-    risk_levels = {
-        0: "Low Risk - No immediate flood danger.",
-        1: "Medium Risk - Be cautious, monitor conditions.",
-        2: "High Risk - Potential flooding expected, take precautions!"
-    }
     print(prediction_24.tolist(),prediction_48.tolist())
 
     print({
@@ -67,4 +62,10 @@ def predict_flood(data):
     level_48 = int(np.argmax(prediction_48))
     database_handler.update_predictions("predictions", (level_24, level_48))
 
-predict_flood(json.loads(u'{"temperature": 25.8,"humidity": 86,"rain": 100000000,"pressure": 1013.2,"soil_moisture": 0.22}'))
+predict_flood({
+    "temperature": 9.8,
+    "humidity": 36,
+    "rain": 23,
+    "pressure": 99.2,
+    "soil_moisture": 3.22
+})
