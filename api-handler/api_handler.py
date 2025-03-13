@@ -39,17 +39,26 @@ def get_prediction_entry(n):
         }
     return data
     
-@app.route('/api/raw')
+@app.before_request
+def logger():
+    print("___________________________")
+    print("URL", request.base_url)
+    print("Headers:", request.headers)
+    print("Base Path: ", request.base_url)
+    # print("Body: ", request.get_data())
+    print("---------------------------")
+
+@app.route('/raw')
 def raw():
     raw_data = get_raw_entry(1)
     return jsonify(raw_data)
 
-@app.route('/api/prediction')
+@app.route('/prediction')
 def prediction():
     prediction_data = get_prediction_entry(1)
     return jsonify(prediction_data)
 
-@app.route('/api/newdata', methods=['POST'])
+@app.route('/newdata', methods=['POST'])
 def update_data():
     data = request.json
     return jsonify({"status": "Data updated successfully"}), 200

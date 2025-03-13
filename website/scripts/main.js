@@ -1,6 +1,6 @@
 // JSONPlaceholder API endpoint
-const dataApiUrl = "http://127.0.0.1:5000/api/raw";
-const predApiUrl = "http://127.0.0.1:5000/api/prediction";
+const dataApiUrl = "http://98.70.76.114/api/raw";
+const predApiUrl = "http://98.70.76.114/api/prediction";
 
 // Fetch data and update dashboard
 async function fetchData() {
