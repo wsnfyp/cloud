@@ -19,29 +19,29 @@ def get_raw_entry(n):
     database_handler = dbhandler.DatabaseHandler("../db-handler/dataset.db")
     last_entries = database_handler.get_last_entries("live_dataset", n)
     database_handler.close()
-    data = {}
+    data = []
     for entry in last_entries:
-        data = {
+        data.append({
             "datetime": entry[0],
             "temperature": entry[1],
             "relative_humidity": entry[2],
             "rain": entry[3],
             "surface_pressure": entry[4],
             "soil_moisture": entry[5]
-        }
+        })
     return data
 
 def get_prediction_entry(n):
     database_handler = dbhandler.DatabaseHandler("../db-handler/dataset.db")
     last_entries = database_handler.get_last_entries("predictions", n)
     database_handler.close()
-    data = {}
+    data = []
     for entry in last_entries:
-        data = {
+        data.append({
             "datetime": entry[0],
             "prediction_24": entry[1],
             "prediction_48": entry[2]
-        }
+        })
     return data
     
 @app.before_request
@@ -54,13 +54,15 @@ def logger():
     print("---------------------------")
 
 @app.route('/raw')
-def raw():
-    raw_data = get_raw_entry(1)
+@app.route('/raw/<int:n>')
+def raw(n=1):
+    raw_data = get_raw_entry(n)
     return jsonify(raw_data)
 
 @app.route('/prediction')
-def prediction():
-    prediction_data = get_prediction_entry(1)
+@app.route('/prediction/<int:n>')
+def prediction(n=1):
+    prediction_data = get_prediction_entry(n)
     return jsonify(prediction_data)
 
 @app.route('/newdata', methods=['POST'])
@@ -106,5 +108,6 @@ def update_data():
         return jsonify({"status": "error", "message": str(e)}), 500
 
     return jsonify({"status": "Data updated successfully", "data": new_entry}), 200
+
 if __name__ == '__main__':
     app.run(debug=True)

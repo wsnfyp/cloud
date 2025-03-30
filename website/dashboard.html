@@ -19,6 +19,21 @@
 
     <main>
         <h1>Flood Prediction Dashboard</h1>
+        
+        <!-- Data Range Selector -->
+        <div class="data-range-selector">
+            <label for="data-range">
+                <i class="material-icons">history</i> Show last:
+            </label>
+            <select id="data-range">
+                <option value="5">5 entries</option>
+                <option value="10" selected>10 entries</option>
+                <option value="20">20 entries</option>
+                <option value="30">30 entries</option>
+                <option value="50">50 entries</option>
+            </select>
+        </div>
+
         <div class="dashboard-grid">
             <div class="card">
                 <h3><i class="material-icons">schedule</i> 24hr Forecast</h3>
@@ -29,7 +44,7 @@
                 <p id="48hr-forecast">Loading...</p>
             </div>
             <div class="card">
-                <h3><i class="material-icons">water</i> Soil Moisture </h3>
+                <h3><i class="material-icons">water</i> Soil Moisture</h3>
                 <p id="soil-moisture">Loading...</p>
             </div>
             <div class="card">

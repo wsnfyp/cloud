@@ -1,27 +1,39 @@
 // JSONPlaceholder API endpoint
-const dataApiUrl = "http://98.70.76.114/api/raw";
-const predApiUrl = "http://98.70.76.114/api/prediction";
+const baseApiUrl = "http://98.70.76.114/api";
+const dataApiUrl = `${baseApiUrl}/raw/10`;  // Default to 10 entries
+const predApiUrl = `${baseApiUrl}/prediction`;
+
+// Chart variables
+let forecastChart;
 
 // Fetch data and update dashboard
-async function fetchData() {
+async function fetchData(n = 10) {
     try {
-        const response = await fetch(dataApiUrl);
+        const response = await fetch(`${baseApiUrl}/raw/${n}`);
         const data = await response.json();
-        console.log("RAW DATA: ", data)
+        console.log("RAW DATA: ", data);
 
-        // Update DOM with fetched data
-        document.getElementById("soil-moisture").textContent = `Soil Moisture: ${data.soil_moisture}m`;
-        document.getElementById("rain").textContent = `Rain: ${data.rain}mm`;
-        document.getElementById("temperature").textContent = `Temp: ${data.temperature}°C`;
-        document.getElementById("humidity").textContent = `Humidity: ${data.relative_humidity}%`;
-        document.getElementById("surface-pressure").textContent = `Surface Pressure: ${data.surface_pressure}hPa`;
+        if (Array.isArray(data) && data.length > 0) {
+            // Update dashboard with latest entry
+            const latest = data[data.length - 1];
+            document.getElementById("soil-moisture").textContent = `Soil Moisture: ${latest.soil_moisture}m`;
+            document.getElementById("rain").textContent = `Rain: ${latest.rain}mm`;
+            document.getElementById("temperature").textContent = `Temp: ${latest.temperature}°C`;
+            document.getElementById("humidity").textContent = `Humidity: ${latest.relative_humidity}%`;
+            document.getElementById("surface-pressure").textContent = `Surface Pressure: ${latest.surface_pressure}hPa`;
+
+            // Update chart with historical data
+            updateChart(data);
+        } else {
+            console.error("No data received or invalid format");
+        }
 
     } catch (error) {
         console.error("Error fetching data:", error);
     }
 }
 
-async function fetchPrediction(){
+async function fetchPrediction() {
     try {
         const response = await fetch(predApiUrl);
         const data = await response.json();
@@ -29,46 +41,125 @@ async function fetchPrediction(){
             [0, "Low Risk (Below 50%)"],
             [1, "Medium Risk (75% - 90%)"],
             [2, "High Risk (Above 90%))"]
-        ])
+        ]);
+        
         console.log("PREDICTION: ", data);
-        pred_24 = data.prediction_24;
-        pred_48 = data.prediction_48;
-        console.log("LASDL", pred_24)
+        const pred_24 = data.prediction_24;
+        const pred_48 = data.prediction_48;
+        
         document.getElementById("24hr-forecast").textContent = `Forecast: ${prediction_level_map.get(pred_24)}`;
         document.getElementById("48hr-forecast").textContent = `Forecast: ${prediction_level_map.get(pred_48)}`;
-        chartData.datasets.data = [data.level_24, data.level_48];
+        
     } catch (error) {
-        console.error("Error fetching data:", error)
+        console.error("Error fetching prediction data:", error);
     }
 }
 
-// UPDATE!
-const chartData = {
-    labels: ['day1', 'day2', 'day3', 'day4', 'day5', 'day6', 'day7', 'day8', 'day9', 'day10'],
-    datasets: [{
-        label: 'Flood Forecast',
-        data: [50, 19, 23, 34, 10, 34, 12, 56, 23, 40],
-        backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)'],
-        borderColor: ['rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'],
-        borderWidth: 1,
-    }]
-};
+function updateChart(data) {
+    // Prepare chart data
+    const labels = data.map(entry => {
+        const date = new Date(entry.datetime);
+        return date.toLocaleTimeString(); // Or format as needed
+    });
+    
+    const temperatureData = data.map(entry => entry.temperature);
+    const humidityData = data.map(entry => entry.relative_humidity);
+    const rainData = data.map(entry => entry.rain);
+    const soilData = data.map(entry => entry.soil_moisture);
 
-const chartConfig = {
-    type: 'line',
-    data: chartData,
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
+    // Destroy previous chart if it exists
+    if (forecastChart) {
+        forecastChart.destroy();
+    }
+
+    const ctx = document.getElementById('forecast-chart').getContext('2d');
+    
+    forecastChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Temperature (°C)',
+                    data: temperatureData,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderWidth: 1,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Humidity (%)',
+                    data: humidityData,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderWidth: 1,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Rain (mm)',
+                    data: rainData,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderWidth: 1,
+                    yAxisID: 'y1'
+                },
+                {
+                    label: 'Soil Moisture (m)',
+                    data: soilData,
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    borderWidth: 1,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Temperature/Humidity'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Rain/Soil Moisture'
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                    }
+                }
             }
         }
+    });
+}
+
+// Initialize the page
+function init() {
+    // Add event listener for data range selector
+    const rangeSelector = document.getElementById('data-range');
+    if (rangeSelector) {
+        rangeSelector.addEventListener('change', (e) => {
+            fetchData(parseInt(e.target.value));
+        });
     }
-};
 
-const ctx = document.getElementById('forecast-chart').getContext('2d');
+    // Initial data fetch
+    fetchData();
+    fetchPrediction();
+}
 
-// Fetch data on page load
-fetchData();
-fetchPrediction();
-new Chart(ctx, chartConfig);
+// Start when DOM is loaded
+document.addEventListener('DOMContentLoaded', init);
