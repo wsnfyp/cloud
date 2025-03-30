@@ -14,6 +14,8 @@ async function fetchData() {
         document.getElementById("rain").textContent = `Rain: ${data.rain}mm`;
         document.getElementById("temperature").textContent = `Temp: ${data.temperature}°C`;
         document.getElementById("humidity").textContent = `Humidity: ${data.relative_humidity}%`;
+        document.getElementById("surface-pressure").textContent = `Surface Pressure: ${data.surface_pressure}hPa`;
+
     } catch (error) {
         console.error("Error fetching data:", error);
     }
