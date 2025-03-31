@@ -94,7 +94,7 @@ def update_data():
     try:
         database_handler = dbhandler.DatabaseHandler("../db-handler/dataset.db")
         print("[DEBUG]: DatabaseHandler initialized")
-        database_handler.update_dataset("live_dataset", (
+        database_handler.update_dataset("hourly_data", (
             temperature,
             relative_humidity,
             total_rainfall,
