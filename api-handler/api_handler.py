@@ -11,7 +11,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../open
 import predictor
 import dbhandler
 from rain_soil import get_previous_day_weather  # Import the function
-
+from rain_soil import get_previous_hour_weather  # Import the function
+from predictor import predict_flood_hourly
 app = Flask(__name__)
 CORS(app)
 
@@ -72,8 +73,8 @@ def update_data():
     print("[DEBUG]: Received data:", data)
 
     # Fetch rainfall and soil moisture from Open-Meteo API using the imported function
-    total_rainfall, avg_soil_moisture = get_previous_day_weather()
-    print("[DEBUG]: Open-Meteo API data - Rainfall:", total_rainfall, "Soil Moisture:", avg_soil_moisture)
+    previous_rain, previous_soil_moisture = get_previous_hour_weather()
+    print("[DEBUG]: Open-Meteo API data - Rainfall:", previous_rain, "Soil Moisture:", previous_soil_moisture)
 
     # Extract sensor data from request
     temperature = data.get("temperature")
@@ -84,9 +85,9 @@ def update_data():
     new_entry = {
         "temperature": temperature,
         "relative_humidity": relative_humidity,
-        "rain": total_rainfall,
+        "rain": previous_rain,
         "surface_pressure": surface_pressure,
-        "soil_moisture": avg_soil_moisture
+        "soil_moisture": previous_soil_moisture
     }
     print("[DEBUG]: Combined data:", new_entry)
 
@@ -94,20 +95,39 @@ def update_data():
     try:
         database_handler = dbhandler.DatabaseHandler("../db-handler/dataset.db")
         print("[DEBUG]: DatabaseHandler initialized")
+        
+        # Step 1: Update hourly_data table
         database_handler.update_dataset("hourly_data", (
             temperature,
             relative_humidity,
-            total_rainfall,
+            previous_rain,
             surface_pressure,
-            avg_soil_moisture
+            previous_soil_moisture
         ))
-        print("[DEBUG]: Dataset updated successfully")
+        print("[DEBUG]: hourly_data table updated successfully")
+
+        # Step 2: Perform prediction on the hourly data
+        prediction_24, prediction_48 = predict_flood_hourly()
+        print("[DEBUG]: Predictions - 24-hour:", prediction_24, "48-hour:", prediction_48)
+
+        # Step 3: Update hourly_predictions table with new predictions
+        database_handler.update_predictions("hourly_predictions", (prediction_24, prediction_48))
+        print("[DEBUG]: hourly_predictions table updated successfully")
+
+        # Close the database connection
         database_handler.close()
     except Exception as e:
         print("[ERROR]:", str(e))
         return jsonify({"status": "error", "message": str(e)}), 500
 
-    return jsonify({"status": "Data updated successfully", "data": new_entry}), 200
-
+    return jsonify({
+        "status": "success",
+        "message": "Data and predictions updated successfully",
+        "data": new_entry,
+        "predictions": {
+            "24_hour": prediction_24,
+        }
+    }), 200
 if __name__ == '__main__':
+    
     app.run(debug=True)
