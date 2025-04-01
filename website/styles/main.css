@@ -498,3 +498,7 @@ footer {
         justify-content: center;
     }
 }
+.risk-indicator i.material-icons {
+    font-size: 36px;
+    color: white;
+}

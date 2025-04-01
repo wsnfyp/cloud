@@ -9,17 +9,14 @@ const hourlyPredApiUrl = `${baseApiUrl}/hourly_prediction`; // Hourly prediction
 const risk_level_map = {
     0: {
         label: "Low Risk",
-        description: "Below 50% probability of flooding",
         class: "risk-low"
     },
     1: {
         label: "Medium Risk",
-        description: "75% - 90% probability of flooding",
         class: "risk-medium"
     },
     2: {
         label: "High Risk",
-        description: "Above 90% probability of flooding",
         class: "risk-high"
     }
 };
@@ -82,10 +79,16 @@ function setupRiskIndicator(elementId, riskLevel) {
     const risk = risk_level_map[riskLevel];
     if (risk) {
         element.classList.add(risk.class);
-        element.textContent = riskLevel;
+        // Show appropriate icon instead of numeric value
+        if (risk.class === 'risk-low') {
+            element.innerHTML = '<i class="material-icons">check_circle</i>';
+        } else if (risk.class === 'risk-medium') {
+            element.innerHTML = '<i class="material-icons">warning</i>';
+        } else if (risk.class === 'risk-high') {
+            element.innerHTML = '<i class="material-icons">error</i>';
+        }
     }
 }
-
 // Fetch hourly sensor data and update dashboard
 async function fetchHourlyData(n = 10) {
     try {
@@ -183,8 +186,8 @@ async function fetchDailyPrediction() {
             const pred_48 = latestPrediction.prediction_48;
             
             // Update forecast text
-            document.getElementById("24hr-forecast").textContent = risk_level_map[pred_24]?.label + " - " + risk_level_map[pred_24]?.description;
-            document.getElementById("48hr-forecast").textContent = risk_level_map[pred_48]?.label + " - " + risk_level_map[pred_48]?.description;
+            document.getElementById("24hr-forecast").textContent = risk_level_map[pred_24]?.label;
+            document.getElementById("48hr-forecast").textContent = risk_level_map[pred_48]?.label;
             
             // Update risk indicators
             setupRiskIndicator("24hr-risk-indicator", pred_24);
@@ -218,7 +221,7 @@ async function fetchHourlyPrediction() {
             const current_risk = latestPrediction.prediction_24; // Using the 24h prediction as current risk
             
             // Update current risk text and indicator
-            document.getElementById("current-risk").textContent = risk_level_map[current_risk]?.label + " - " + risk_level_map[current_risk]?.description;
+            document.getElementById("current-risk").textContent = risk_level_map[current_risk]?.label;
             setupRiskIndicator("current-risk-indicator", current_risk);
         } else {
             console.error("No hourly prediction data received or invalid format");
