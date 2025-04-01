@@ -103,12 +103,14 @@ def get_hourly_entry(n):
     data = []
     for entry in last_entries:
         data.append({
-            "datetime": entry[1],  # Assuming datetime is the second column
+            "datetime": entry[1],
             "temperature": entry[2],
             "relative_humidity": entry[3],
             "rain": entry[4],
             "surface_pressure": entry[5],
-            "soil_moisture": entry[6]
+            "soil_moisture": entry[6],
+            "water_flow": entry[7],
+            "water_depth": entry[8]
         })
     return data
 
@@ -166,7 +168,9 @@ def prediction(n=1):
 
 @app.route('/newdata', methods=['POST'])
 def update_data():
-
+    """
+    Endpoint to update hourly data with sensor and API data, including water flow and depth.
+    """
     print("[DEBUG]: /newdata endpoint called")
     data = request.json
     print("[DEBUG]: Received data:", data)
@@ -179,6 +183,8 @@ def update_data():
     temperature = data.get("temperature")
     relative_humidity = data.get("relative_humidity")
     surface_pressure = data.get("surface_pressure")
+    water_flow = data.get("water_flow")  # New field
+    water_depth = data.get("water_depth")  # New field
 
     # Combine sensor and API data
     new_entry = {
@@ -186,7 +192,9 @@ def update_data():
         "relative_humidity": relative_humidity,
         "rain": previous_rain,
         "surface_pressure": surface_pressure,
-        "soil_moisture": previous_soil_moisture
+        "soil_moisture": previous_soil_moisture,
+        "water_flow": water_flow,
+        "water_depth": water_depth
     }
     print("[DEBUG]: Combined data:", new_entry)
 
@@ -196,13 +204,23 @@ def update_data():
         print("[DEBUG]: DatabaseHandler initialized")
         
         # Step 1: Update hourly_data table
-        database_handler.update_dataset("hourly_data", (
-            temperature,
-            relative_humidity,
-            previous_rain,
-            surface_pressure,
-            previous_soil_moisture
-        ))
+        database_handler.execute_query(
+            f"""
+            INSERT INTO hourly_data 
+            (datetime, temperature, relative_humidity, rain, surface_pressure, soil_moisture, water_flow, water_depth) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                int(time.time()),  # Current timestamp
+                temperature,
+                relative_humidity,
+                previous_rain,
+                surface_pressure,
+                previous_soil_moisture,
+                water_flow,
+                water_depth
+            )
+        )
         print("[DEBUG]: hourly_data table updated successfully")
 
         # Step 2: Perform prediction on the hourly data
@@ -225,6 +243,7 @@ def update_data():
         "data": new_entry,
         "predictions": {
             "24_hour": prediction_24,
+            "48_hour": prediction_48
         }
     }), 200
 @app.route('/aggregate_daily', methods=['POST'])

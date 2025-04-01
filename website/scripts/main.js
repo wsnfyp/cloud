@@ -1,6 +1,7 @@
 // API endpoints
 const baseApiUrl = "http://127.0.0.1:5000";
 const hourlyDataApiUrl = `${baseApiUrl}/hourly`;  // Hourly sensor data
+const dailyDataApiUrl = `${baseApiUrl}/raw`;  // Daily sensor data for trends
 const dailyPredApiUrl = `${baseApiUrl}/prediction`;  // Daily predictions for 24h and 48h forecasts
 const hourlyPredApiUrl = `${baseApiUrl}/hourly_prediction`; // Hourly predictions for current risk
 
@@ -26,6 +27,7 @@ const risk_level_map = {
 // Chart variables
 let forecastChart;
 let currentChartType = 'all';
+let currentDataSource = 'hourly'; // Default to hourly data
 let chartData = {};
 
 // Show loading overlay
@@ -108,6 +110,15 @@ async function fetchHourlyData(n = 10) {
             document.getElementById("temperature").textContent = formatValue(latest.temperature, "°C");
             document.getElementById("humidity").textContent = formatValue(latest.relative_humidity, "%");
             document.getElementById("surface-pressure").textContent = formatValue(latest.surface_pressure, "hPa");
+            
+            // Add the new water flow and water depth fields
+            if (document.getElementById("water-flow")) {
+                document.getElementById("water-flow").textContent = formatValue(latest.water_flow, "m³/s");
+            }
+            
+            if (document.getElementById("water-depth")) {
+                document.getElementById("water-depth").textContent = formatValue(latest.water_depth, "m");
+            }
 
             // Update chart with historical data
             updateChart(currentChartType);
@@ -117,6 +128,36 @@ async function fetchHourlyData(n = 10) {
 
     } catch (error) {
         console.error("Error fetching hourly data:", error);
+    } finally {
+        hideLoading();
+    }
+}
+
+// Fetch daily data for trend charts
+async function fetchDailyData(n = 10) {
+    try {
+        showLoading();
+        const response = await fetch(`${dailyDataApiUrl}/${n}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("DAILY DATA: ", data);
+
+        if (Array.isArray(data) && data.length > 0) {
+            // Store data for chart
+            chartData.daily = data;
+            
+            // Update chart with historical data
+            updateChart(currentChartType);
+        } else {
+            console.error("No daily data received or invalid format");
+        }
+
+    } catch (error) {
+        console.error("Error fetching daily data:", error);
     } finally {
         hideLoading();
     }
@@ -190,11 +231,14 @@ async function fetchHourlyPrediction() {
 }
 
 function updateChart(chartType = 'all') {
+    // Get data based on current data source selection
+    const sourceData = currentDataSource === 'hourly' ? chartData.hourly : chartData.daily;
+    
     // If no data, return
-    if (!chartData.hourly || chartData.hourly.length === 0) return;
+    if (!sourceData || sourceData.length === 0) return;
     
     currentChartType = chartType;
-    const data = chartData.hourly;
+    const data = sourceData;
     
     // Prepare chart data
     const labels = data.map(entry => {
@@ -206,6 +250,10 @@ function updateChart(chartType = 'all') {
     const rainData = data.map(entry => entry.rain);
     const soilData = data.map(entry => entry.soil_moisture);
     const pressureData = data.map(entry => entry.surface_pressure / 10); // Scale down for better visualization
+    
+    // Water flow and depth might only be available in hourly data
+    const waterFlowData = currentDataSource === 'hourly' ? data.map(entry => entry.water_flow || 0) : [];
+    const waterDepthData = currentDataSource === 'hourly' ? data.map(entry => entry.water_depth || 0) : [];
 
     // Destroy previous chart if it exists
     if (forecastChart) {
@@ -272,6 +320,29 @@ function updateChart(chartType = 'all') {
         });
     }
     
+    // Add water metrics for hourly data
+    if ((chartType === 'all' || chartType === 'water-metrics') && currentDataSource === 'hourly') {
+        datasets.push({
+            label: 'Water Flow (m³/s)',
+            data: waterFlowData,
+            borderColor: 'rgba(255, 206, 86, 1)',
+            backgroundColor: 'rgba(255, 206, 86, 0.2)',
+            borderWidth: 2,
+            tension: 0.2,
+            yAxisID: chartType === 'all' ? 'y1' : 'y'
+        });
+        
+        datasets.push({
+            label: 'Water Depth (m)',
+            data: waterDepthData,
+            borderColor: 'rgba(111, 66, 193, 1)',
+            backgroundColor: 'rgba(111, 66, 193, 0.2)',
+            borderWidth: 2,
+            tension: 0.2,
+            yAxisID: chartType === 'all' ? 'y1' : 'y'
+        });
+    }
+    
     // Chart configuration
     const scales = {
         x: {
@@ -286,9 +357,7 @@ function updateChart(chartType = 'all') {
             position: 'left',
             title: {
                 display: true,
-                text: chartType === 'rain-soil' 
-                    ? 'Rain (mm) / Soil Moisture (m³/m³)' 
-                    : 'Temperature (°C) / Humidity (%) / Pressure (hPa/10)'
+                text: getYAxisTitle(chartType),
             },
             grid: {
                 color: 'rgba(0, 0, 0, 0.1)'
@@ -304,7 +373,7 @@ function updateChart(chartType = 'all') {
             position: 'right',
             title: {
                 display: true,
-                text: 'Rain (mm) / Soil Moisture (m³/m³)'
+                text: 'Rain (mm) / Soil Moisture (m³/m³) / Water Flow (m³/s) / Water Depth (m)'
             },
             grid: {
                 drawOnChartArea: false,
@@ -327,7 +396,7 @@ function updateChart(chartType = 'all') {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Sensor Data Trends',
+                    text: `Sensor Data Trends (${currentDataSource === 'hourly' ? 'Hourly' : 'Daily'})`,
                     font: {
                         size: 16
                     }
@@ -345,11 +414,36 @@ function updateChart(chartType = 'all') {
     });
 }
 
+// Helper function to get Y-axis title based on chart type
+function getYAxisTitle(chartType) {
+    if (chartType === 'temp-humidity') {
+        return 'Temperature (°C) / Humidity (%)';
+    } else if (chartType === 'rain-soil') {
+        return 'Rain (mm) / Soil Moisture (m³/m³)';
+    } else if (chartType === 'water-metrics') {
+        return 'Water Flow (m³/s) / Water Depth (m)';
+    } else {
+        return 'Temperature (°C) / Humidity (%) / Pressure (hPa/10)';
+    }
+}
+
+// Toggle data source between hourly and daily
+function toggleDataSource(source) {
+    currentDataSource = source;
+    if (source === 'hourly') {
+        fetchHourlyData(parseInt(document.getElementById('data-range').value));
+    } else {
+        fetchDailyData(parseInt(document.getElementById('data-range').value));
+    }
+}
+
 // Refresh all data
 function refreshData() {
     showLoading();
     Promise.all([
-        fetchHourlyData(parseInt(document.getElementById('data-range').value)),
+        currentDataSource === 'hourly' 
+            ? fetchHourlyData(parseInt(document.getElementById('data-range').value))
+            : fetchDailyData(parseInt(document.getElementById('data-range').value)),
         fetchDailyPrediction(),
         fetchHourlyPrediction()
     ]).then(() => {
@@ -373,7 +467,19 @@ function init() {
     const rangeSelector = document.getElementById('data-range');
     if (rangeSelector) {
         rangeSelector.addEventListener('change', (e) => {
-            fetchHourlyData(parseInt(e.target.value));
+            if (currentDataSource === 'hourly') {
+                fetchHourlyData(parseInt(e.target.value));
+            } else {
+                fetchDailyData(parseInt(e.target.value));
+            }
+        });
+    }
+    
+    // Add event listener for data source toggle
+    const dataToggle = document.getElementById('data-toggle');
+    if (dataToggle) {
+        dataToggle.addEventListener('change', (e) => {
+            toggleDataSource(e.target.value);
         });
     }
     

@@ -1,4 +1,4 @@
--Cloud/website/dashboard.html -->
+Personal-Cloud/website/dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -130,9 +130,31 @@
                         <div class="data-source">Source: Hourly Data</div>
                     </div>
                 </div>
+                
+                <div class="card sensor">
+                    <div class="card-header">
+                        <i class="material-icons">speed</i>
+                        <h3>Water Flow</h3>
+                    </div>
+                    <div class="card-content">
+                        <p id="water-flow">Loading...</p>
+                        <div class="data-source">Source: Hourly Data</div>
+                    </div>
+                </div>
+
+                <div class="card sensor">
+                    <div class="card-header">
+                        <i class="material-icons">height</i>
+                        <h3>Water Depth</h3>
+                    </div>
+                    <div class="card-content">
+                        <p id="water-depth">Loading...</p>
+                        <div class="data-source">Source: Hourly Data</div>
+                    </div>
+                </div>
             </div>
         </div>
-
+        
         <!-- Data Range Selector -->
         <div class="data-range-selector">
             <label for="data-range">
@@ -149,10 +171,20 @@
         <!-- Chart Section -->
         <div class="chart-container">
             <h3>Sensor Data Trends</h3>
-            <div class="chart-tabs">
-                <button class="chart-tab active" data-chart="all">All Metrics</button>
-                <button class="chart-tab" data-chart="temp-humidity">Temperature & Humidity</button>
-                <button class="chart-tab" data-chart="rain-soil">Rainfall & Soil Moisture</button>
+            <div class="chart-controls">
+                <div class="chart-tabs">
+                    <button class="chart-tab active" data-chart="all">All Metrics</button>
+                    <button class="chart-tab" data-chart="temp-humidity">Temperature & Humidity</button>
+                    <button class="chart-tab" data-chart="rain-soil">Rainfall & Soil Moisture</button>
+                    <button class="chart-tab" data-chart="water-metrics">Water Flow & Depth</button>
+                </div>
+                <div class="chart-toggle">
+                    <label for="data-toggle">Data Source:</label>
+                    <select id="data-toggle">
+                        <option value="hourly" selected>Hourly Data</option>
+                        <option value="daily">Daily Data</option>
+                    </select>
+                </div>
             </div>
             <canvas id="forecast-chart"></canvas>
         </div>
