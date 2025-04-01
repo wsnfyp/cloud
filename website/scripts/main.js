@@ -1,5 +1,5 @@
 // API endpoints
-const baseApiUrl = "http://127.0.0.1:5000";
+const baseApiUrl = "http://98.70.76.114/api";
 const hourlyDataApiUrl = `${baseApiUrl}/hourly`;  // Hourly sensor data
 const dailyPredApiUrl = `${baseApiUrl}/prediction`;  // Daily predictions for 24h and 48h forecasts
 const hourlyPredApiUrl = `${baseApiUrl}/hourly_prediction`; // Hourly predictions for current risk
