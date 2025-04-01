@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Data - Flood Prediction Project</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        .download-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .download-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .download-card h3 {
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .download-card p {
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+        
+        .download-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            color: var(--primary-dark);
+        }
+        
+        .download-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+        }
+        
+        .download-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        #status-message {
+            text-align: center;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: var(--radius);
+            display: none;
+        }
+        
+        .status-success {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #2e7d32;
+        }
+        
+        .status-error {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <i class="material-icons">water_drop</i>
+                <h1>Flood Risk Monitor</h1>
+            </div>
+            <nav>
+                <a href="index.html"><i class="material-icons">home</i> Home</a>
+                <a href="dashboard.html"><i class="material-icons">dashboard</i> Dashboard</a>
+                <a href="download.html" class="active"><i class="material-icons">download</i> Download</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="dashboard-header">
+            <h2>Download Sensor and Prediction Data</h2>
+        </div>
+        
+        <div id="status-message"></div>
+        
+        <div class="download-container">
+            <div class="download-card">
+                <h3><i class="material-icons">schedule</i> Hourly Sensor Data</h3>
+                <p>Download hourly sensor readings including temperature, humidity, rainfall, soil moisture, and water metrics.</p>
+                <form class="download-form" id="hourly-form">
+                    <div class="form-group">
+                        <label for="hourly-count">Number of entries:</label>
+                        <select id="hourly-count" name="count">
+                            <option value="24">Last 24 hours</option>
+                            <option value="48">Last 48 hours</option>
+                            <option value="72">Last 72 hours</option>
+                            <option value="168">Last week</option>
+                            <option value="720">Last month</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="download-btn">
+                        <i class="material-icons">download</i> Download CSV
+                    </button>
+                </form>
+            </div>
+            
+            <div class="download-card">
+                <h3><i class="material-icons">calendar_today</i> Daily Sensor Data</h3>
+                <p>Download daily aggregated sensor readings with average values for each day.</p>
+                <form class="download-form" id="daily-form">
+                    <div class="form-group">
+                        <label for="daily-count">Number of entries:</label>
+                        <select id="daily-count" name="count">
+                            <option value="7">Last 7 days</option>
+                            <option value="14">Last 14 days</option>
+                            <option value="30">Last 30 days</option>
+                            <option value="90">Last 3 months</option>
+                            <option value="365">Last year</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="download-btn">
+                        <i class="material-icons">download</i> Download CSV
+                    </button>
+                </form>
+            </div>
+            
+            <div class="download-card">
+                <h3><i class="material-icons">insights</i> Prediction Data</h3>
+                <p>Download historical flood risk predictions for 24h and 48h forecasts.</p>
+                <form class="download-form" id="prediction-form">
+                    <div class="form-group">
+                        <label for="prediction-type">Prediction type:</label>
+                        <select id="prediction-type" name="type">
+                            <option value="hourly">Hourly predictions</option>
+                            <option value="daily">Daily predictions</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="prediction-count">Number of entries:</label>
+                        <select id="prediction-count" name="count">
+                            <option value="24">Last 24 entries</option>
+                            <option value="48">Last 48 entries</option>
+                            <option value="168">Last week</option>
+                            <option value="720">Last month</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="download-btn">
+                        <i class="material-icons">download</i> Download CSV
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Flood Prediction Team | WSN Final Year Project</p>
+    </footer>
+    
+    <div id="loading-overlay" class="hidden">
+        <div class="loader"></div>
+        <p>Preparing download...</p>
+    </div>
+
+    <script>
+        // Base API URL
+        const baseApiUrl = "http://127.0.0.1:5000";
+        
+        // Show loading overlay
+        function showLoading() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        }
+        
+        // Hide loading overlay
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+        
+        // Show status message
+        function showStatus(message, isSuccess = true) {
+            const statusElement = document.getElementById('status-message');
+            statusElement.textContent = message;
+            statusElement.className = isSuccess ? 'status-success' : 'status-error';
+            statusElement.style.display = 'block';
+            
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Download CSV file
+        async function downloadCSV(endpoint, filename) {
+            try {
+                showLoading();
+                
+                const response = await fetch(endpoint);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showStatus(`Successfully downloaded ${filename}`);
+            } catch (error) {
+                console.error("Error downloading data:", error);
+                showStatus(`Error downloading data: ${error.message}`, false);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Initialize the page
+        function init() {
+            // Hourly data form
+            document.getElementById('hourly-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const count = document.getElementById('hourly-count').value;
+                const endpoint = `${baseApiUrl}/download/hourly/${count}`;
+                const filename = `hourly_data_${new Date().toISOString().slice(0, 10)}.csv`;
+                downloadCSV(endpoint, filename);
+            });
+            
+            // Daily data form
+            document.getElementById('daily-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const count = document.getElementById('daily-count').value;
+                const endpoint = `${baseApiUrl}/download/daily/${count}`;
+                const filename = `daily_data_${new Date().toISOString().slice(0, 10)}.csv`;
+                downloadCSV(endpoint, filename);
+            });
+            
+            // Prediction data form
+            document.getElementById('prediction-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const type = document.getElementById('prediction-type').value;
+                const count = document.getElementById('prediction-count').value;
+                const endpoint = `${baseApiUrl}/download/prediction/${type}/${count}`;
+                const filename = `${type}_predictions_${new Date().toISOString().slice(0, 10)}.csv`;
+                downloadCSV(endpoint, filename);
+            });
+        }
+        
+        // Start when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

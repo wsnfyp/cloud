@@ -4,6 +4,9 @@ import sys
 import os
 from datetime import datetime
 import time  # Add this import
+import csv
+from io import StringIO
+from flask import Response
 # Add paths to other modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../db-handler')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../predictor')))
@@ -296,6 +299,153 @@ def predict_daily():
         }), 200
     except Exception as e:
         print("[ERROR]: Failed to predict daily flood risks:", str(e))
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
+
+@app.route('/download/hourly/<int:n>')
+def download_hourly_csv(n=24):
+    print(f"[DEBUG]: /download/hourly/{n} endpoint called")
+    try:
+        # Get data
+        hourly_data = get_hourly_entry(n)
+        print(f"[DEBUG]: Retrieved {len(hourly_data)} rows of hourly data")
+        
+        if not hourly_data:
+            print("[DEBUG]: No data available")
+            return jsonify({"status": "error", "message": "No data available"}), 404
+        
+        # Create CSV
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['Datetime', 'Temperature (°C)', 'Relative Humidity (%)', 
+                         'Rain (mm)', 'Surface Pressure (hPa)', 'Soil Moisture (m³/m³)',
+                         'Water Flow (m³/s)', 'Water Depth (m)'])
+        
+        # Write data
+        for entry in hourly_data:
+            datetime_str = datetime.fromtimestamp(entry['datetime']).strftime('%Y-%m-%d %H:%M:%S')
+            writer.writerow([
+                datetime_str,
+                entry['temperature'],
+                entry['relative_humidity'],
+                entry['rain'],
+                entry['surface_pressure'],
+                entry['soil_moisture'],
+                entry['water_flow'],
+                entry['water_depth']
+            ])
+        
+        # Prepare response
+        output.seek(0)
+        return Response(
+            output.getvalue(),
+            mimetype="text/csv",
+            headers={"Content-disposition": f"attachment; filename=hourly_data.csv"}
+        )
+    
+    except Exception as e:
+        print(f"[ERROR]: Error generating hourly CSV: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+@app.route('/download/prediction/<string:type>/<int:n>')
+def download_prediction_csv(type='daily', n=7):
+    """
+    Download prediction data as CSV
+    """
+    try:
+        # Validate type
+        if type not in ['daily', 'hourly']:
+            return jsonify({"status": "error", "message": "Invalid prediction type"}), 400
+        
+        # Get data based on type
+        if type == 'daily':
+            prediction_data = get_prediction_entry(n)
+        else:
+            prediction_data = get_hourly_prediction_entry(n)
+        
+        if not prediction_data:
+            return jsonify({"status": "error", "message": "No data available"}), 404
+        
+        # Create CSV
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['Datetime', '24-Hour Prediction', '48-Hour Prediction', 
+                         '24-Hour Risk Level', '48-Hour Risk Level'])
+        
+        # Define risk levels
+        risk_levels = {
+            0: "Low Risk",
+            1: "Medium Risk",
+            2: "High Risk"
+        }
+        
+        # Write data
+        for entry in prediction_data:
+            datetime_str = datetime.fromtimestamp(entry['datetime']).strftime('%Y-%m-%d %H:%M:%S')
+            writer.writerow([
+                datetime_str,
+                entry['prediction_24'],
+                entry['prediction_48'],
+                risk_levels.get(entry['prediction_24'], "Unknown"),
+                risk_levels.get(entry['prediction_48'], "Unknown")
+            ])
+        
+        # Prepare response
+        output.seek(0)
+        return Response(
+            output.getvalue(),
+            mimetype="text/csv",
+            headers={"Content-disposition": f"attachment; filename={type}_predictions.csv"}
+        )
+    
+    except Exception as e:
+        print(f"[ERROR]: Error generating prediction CSV: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+@app.route('/download/daily/<int:n>')
+def download_daily_csv(n=7):
+    print(f"[DEBUG]: /download/daily/{n} endpoint called")
+    try:
+        # Get data
+        daily_data = get_raw_entry(n)
+        print(f"[DEBUG]: Retrieved {len(daily_data)} rows of daily data")
+        
+        if not daily_data:
+            print("[DEBUG]: No data available")
+            return jsonify({"status": "error", "message": "No data available"}), 404
+        
+        # Create CSV
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['Datetime', 'Temperature (°C)', 'Relative Humidity (%)', 
+                         'Rain (mm)', 'Surface Pressure (hPa)', 'Soil Moisture (m³/m³)'])
+        
+        # Write data
+        for entry in daily_data:
+            datetime_str = datetime.fromtimestamp(entry['datetime']).strftime('%Y-%m-%d %H:%M:%S')
+            writer.writerow([
+                datetime_str,
+                entry['temperature'],
+                entry['relative_humidity'],
+                entry['rain'],
+                entry['surface_pressure'],
+                entry['soil_moisture']
+            ])
+        
+        # Prepare response
+        output.seek(0)
+        return Response(
+            output.getvalue(),
+            mimetype="text/csv",
+            headers={"Content-disposition": f"attachment; filename=daily_data.csv"}
+        )
+    
+    except Exception as e:
+        print(f"[ERROR]: Error generating daily CSV: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 if __name__ == '__main__':
     
