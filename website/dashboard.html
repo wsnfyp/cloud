@@ -1,75 +1,171 @@
+-Cloud/website/dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Flood Prediction</title>
+    <title>Flood Prediction Dashboard</title>
     <link rel="stylesheet" href="styles/main.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <script type="module" src="node_modules/@material/web/all.js"></script>
 </head>
 <body>
     <header>
-        <nav>
-            <a href="index.html"><i class="material-icons">home</i> Home</a>
-            <a href="dashboard.html"><i class="material-icons">dashboard</i> Dashboard</a>
-        </nav>
+        <div class="header-content">
+            <div class="logo">
+                <i class="material-icons">water_drop</i>
+                <h1>Flood Risk Monitor</h1>
+            </div>
+            <nav>
+                <a href="index.html"><i class="material-icons">home</i> Home</a>
+                <a href="dashboard.html" class="active"><i class="material-icons">dashboard</i> Dashboard</a>
+            </nav>
+        </div>
     </header>
 
     <main>
-        <h1>Flood Prediction Dashboard</h1>
-        
-        <!-- Data Range Selector -->
-        <div class="data-range-selector">
-            <label for="data-range">
-                <i class="material-icons">history</i> Show last:
-            </label>
-            <select id="data-range">
-                <option value="5">5 entries</option>
-                <option value="10" selected>10 entries</option>
-                <option value="20">20 entries</option>
-                <option value="30">30 entries</option>
-                <option value="50">50 entries</option>
-            </select>
+        <div class="dashboard-header">
+            <h2>Real-time Monitoring & Forecast</h2>
+            <div class="refresh-container">
+                <span id="last-updated">Last updated: Loading...</span>
+                <button id="refresh-btn" class="refresh-button">
+                    <i class="material-icons">refresh</i> Refresh
+                </button>
+            </div>
         </div>
 
         <div class="dashboard-grid">
-            <div class="card">
-                <h3><i class="material-icons">schedule</i> 24hr Forecast</h3>
-                <p id="24hr-forecast">Loading...</p>
+            <!-- Forecast Cards Row -->
+            <div class="forecast-section">
+                <div class="card forecast current-risk">
+                    <div class="card-header">
+                        <i class="material-icons">warning</i>
+                        <h3>Current Risk</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="risk-indicator" id="current-risk-indicator"></div>
+                        <p id="current-risk">Loading...</p>
+                        <div class="data-source">Source: Hourly Predictions</div>
+                    </div>
+                </div>
+                
+                <div class="card forecast">
+                    <div class="card-header">
+                        <i class="material-icons">schedule</i>
+                        <h3>24hr Forecast</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="risk-indicator" id="24hr-risk-indicator"></div>
+                        <p id="24hr-forecast">Loading...</p>
+                        <div class="data-source">Source: Daily Predictions</div>
+                    </div>
+                </div>
+                
+                <div class="card forecast">
+                    <div class="card-header">
+                        <i class="material-icons">schedule</i>
+                        <h3>48hr Forecast</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="risk-indicator" id="48hr-risk-indicator"></div>
+                        <p id="48hr-forecast">Loading...</p>
+                        <div class="data-source">Source: Daily Predictions</div>
+                    </div>
+                </div>
             </div>
-            <div class="card">
-                <h3><i class="material-icons">schedule</i> 48hr Forecast</h3>
-                <p id="48hr-forecast">Loading...</p>
+
+            <!-- Sensor Data Row -->
+            <div class="sensor-section">
+                <div class="card sensor">
+                    <div class="card-header">
+                        <i class="material-icons">thermostat</i>
+                        <h3>Temperature</h3>
+                    </div>
+                    <div class="card-content">
+                        <p id="temperature">Loading...</p>
+                        <div class="data-source">Source: Hourly Data</div>
+                    </div>
+                </div>
+                
+                <div class="card sensor">
+                    <div class="card-header">
+                        <i class="material-icons">opacity</i>
+                        <h3>Humidity</h3>
+                    </div>
+                    <div class="card-content">
+                        <p id="humidity">Loading...</p>
+                        <div class="data-source">Source: Hourly Data</div>
+                    </div>
+                </div>
+                
+                <div class="card sensor">
+                    <div class="card-header">
+                        <i class="material-icons">waves</i>
+                        <h3>Rainfall</h3>
+                    </div>
+                    <div class="card-content">
+                        <p id="rain">Loading...</p>
+                        <div class="data-source">Source: Hourly Data</div>
+                    </div>
+                </div>
+                
+                <div class="card sensor">
+                    <div class="card-header">
+                        <i class="material-icons">water</i>
+                        <h3>Soil Moisture</h3>
+                    </div>
+                    <div class="card-content">
+                        <p id="soil-moisture">Loading...</p>
+                        <div class="data-source">Source: Hourly Data</div>
+                    </div>
+                </div>
+                
+                <div class="card sensor">
+                    <div class="card-header">
+                        <i class="material-icons">speed</i>
+                        <h3>Pressure</h3>
+                    </div>
+                    <div class="card-content">
+                        <p id="surface-pressure">Loading...</p>
+                        <div class="data-source">Source: Hourly Data</div>
+                    </div>
+                </div>
             </div>
-            <div class="card">
-                <h3><i class="material-icons">water</i> Soil Moisture</h3>
-                <p id="soil-moisture">Loading...</p>
-            </div>
-            <div class="card">
-                <h3><i class="material-icons">waves</i> Rain</h3>
-                <p id="rain">Loading...</p>
-            </div>
-            <div class="card">
-                <h3><i class="material-icons">thermostat</i> Temperature</h3>
-                <p id="temperature">Loading...</p>
-            </div>
-            <div class="card">
-                <h3><i class="material-icons">opacity</i> Humidity</h3>
-                <p id="humidity">Loading...</p>
-            </div>
-            <div class="card">
-                <h3><i class="material-icons">speed</i> Surface Pressure</h3>
-                <p id="surface-pressure">Loading...</p>
-            </div>
+        </div>
+
+        <!-- Data Range Selector -->
+        <div class="data-range-selector">
+            <label for="data-range">
+                <i class="material-icons">history</i> Historical Data:
+            </label>
+            <select id="data-range">
+                <option value="5">Last 5 entries</option>
+                <option value="10" selected>Last 10 entries</option>
+                <option value="24">Last 24 entries</option>
+                <option value="48">Last 48 entries</option>
+            </select>
         </div>
 
         <!-- Chart Section -->
         <div class="chart-container">
+            <h3>Sensor Data Trends</h3>
+            <div class="chart-tabs">
+                <button class="chart-tab active" data-chart="all">All Metrics</button>
+                <button class="chart-tab" data-chart="temp-humidity">Temperature & Humidity</button>
+                <button class="chart-tab" data-chart="rain-soil">Rainfall & Soil Moisture</button>
+            </div>
             <canvas id="forecast-chart"></canvas>
         </div>
     </main>
+
+    <footer>
+        <p>&copy; 2025 Flood Prediction Team | WSN Final Year Project</p>
+    </footer>
+
+    <div id="loading-overlay" class="hidden">
+        <div class="loader"></div>
+        <p>Loading data...</p>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="scripts/main.js"></script>
