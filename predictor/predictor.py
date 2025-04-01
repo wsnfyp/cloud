@@ -20,17 +20,42 @@ model_48 = load_model("../predictor/flood_prediction_48h.keras")
 scaler = joblib.load("../predictor/scaler.pkl")
 
 def predict_flood():
+    # Reinitialize the database connection to ensure it's fresh
+    local_db_handler = dbhandler.DatabaseHandler("../db-handler/dataset.db")
+    
     # Fetch the last 30 entries from the database
-    prev_data = database_handler.get_last_entries("live_dataset", 30)
-    if len(prev_data) < 30:
+    prev_data = local_db_handler.get_last_entries("daily_data", 30)
+    print(f"[DEBUG]: Number of entries fetched: {len(prev_data) if prev_data else 0}")
+    
+    if not prev_data or len(prev_data) < 30:
         print("[ERROR]: Not enough data in the database to make predictions. At least 30 entries are required.")
-        return
+        local_db_handler.close()  # Close the connection
+        return "Insufficient Data", "Insufficient Data"
 
-    # Convert the data into a DataFrame
-    prev_data = pd.DataFrame([entry[1:] for entry in prev_data])  # Exclude the datetime column
+    # Extract features correctly - exclude id and datetime columns
+    feature_data = []
+    for entry in prev_data:
+        # Assuming entry structure is [id, datetime, temp, humid, rain, pressure, soil]
+        feature_values = entry[2:7]  # Extract only the 5 feature columns
+        feature_data.append(feature_values)
+    
+    # Convert to DataFrame for easier handling
+    prev_data = pd.DataFrame(feature_data)
+    print(f"[DEBUG]: DataFrame shape: {prev_data.shape}")
+
+    # Validate we have exactly 5 features
+    if prev_data.shape[1] != 5:
+        print(f"[ERROR]: Wrong number of features. Expected 5, got {prev_data.shape[1]}.")
+        local_db_handler.close()
+        return "Feature Count Error", "Feature Count Error"
 
     # Scale the data
-    scaled_input = scaler.transform(prev_data)
+    try:
+        scaled_input = scaler.transform(prev_data)
+    except Exception as e:
+        print(f"[ERROR]: Scaling error: {e}")
+        local_db_handler.close()
+        return f"Scaling Error: {str(e)}", f"Scaling Error: {str(e)}"
 
     # Reshape for LSTM input (1 sample, 30 timesteps, 5 features)
     lstm_input = scaled_input.reshape(1, 30, 5)
@@ -49,12 +74,72 @@ def predict_flood():
     print("[INFO]: 24-hour Risk Level:", level_24)
     print("[INFO]: 48-hour Risk Level:", level_48)
 
-    # Update predictions in the database
-    try:
-        database_handler.update_predictions("predictions", (level_24, level_48))
-        print("[INFO]: Predictions updated successfully in the database.")
-    except Exception as e:
-        print("[ERROR]: Failed to update predictions in the database:", str(e))
+    # Close the database connection
+    local_db_handler.close()
+    
+    # Just return the predictions - don't update the database here
+    return level_24, level_48
 
+    return level_24, level_48
+def predict_flood_hourly():
+    # Reinitialize the database connection to ensure it's fresh
+    local_db_handler = dbhandler.DatabaseHandler("../db-handler/dataset.db")
+    
+    # Fetch the last 30 entries from the database
+    prev_data = local_db_handler.get_last_entries("hourly_data", 30)
+    print(f"[DEBUG]: Number of entries fetched: {len(prev_data) if prev_data else 0}")
+    
+    if not prev_data or len(prev_data) < 30:
+        print("[ERROR]: Not enough data in the database to make predictions. At least 30 entries are required.")
+        local_db_handler.close()  # Close the connection
+        return "Insufficient Data", "Insufficient Data"
+
+    # Extract features correctly - exclude id and datetime columns
+    feature_data = []
+    for entry in prev_data:
+        # Assuming entry structure is [id, datetime, temp, humid, rain, pressure, soil]
+        feature_values = entry[2:7]  # Extract only the 5 feature columns
+        feature_data.append(feature_values)
+    
+    # Convert to DataFrame for easier handling
+    prev_data = pd.DataFrame(feature_data)
+    print(f"[DEBUG]: DataFrame shape: {prev_data.shape}")
+
+    # Validate we have exactly 5 features
+    if prev_data.shape[1] != 5:
+        print(f"[ERROR]: Wrong number of features. Expected 5, got {prev_data.shape[1]}.")
+        local_db_handler.close()
+        return "Feature Count Error", "Feature Count Error"
+
+    # Scale the data
+    try:
+        scaled_input = scaler.transform(prev_data)
+    except Exception as e:
+        print(f"[ERROR]: Scaling error: {e}")
+        local_db_handler.close()
+        return f"Scaling Error: {str(e)}", f"Scaling Error: {str(e)}"
+
+    # Reshape for LSTM input (1 sample, 30 timesteps, 5 features)
+    lstm_input = scaled_input.reshape(1, 30, 5)
+
+    # Make predictions
+    prediction_24 = model_24.predict(lstm_input)
+    prediction_48 = model_48.predict(lstm_input)
+
+    # Determine risk levels
+    level_24 = int(np.argmax(prediction_24))
+    level_48 = int(np.argmax(prediction_48))
+
+    # Log predictions
+    print("[INFO]: 24-hour Prediction:", prediction_24)
+    print("[INFO]: 48-hour Prediction:", prediction_48)
+    print("[INFO]: 24-hour Risk Level:", level_24)
+    print("[INFO]: 48-hour Risk Level:", level_48)
+
+    # Close the database connection
+    local_db_handler.close()
+    
+    # Just return the predictions - don't update the database here
+    return level_24, level_48
 if __name__ == "__main__":
     predict_flood()

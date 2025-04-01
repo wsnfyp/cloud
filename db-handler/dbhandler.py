@@ -28,6 +28,7 @@ class DatabaseHandler:
     def update_dataset(self, table_name, data: tuple):
         try:
             print("[INFO]: Updating Dataset...")
+            print("[DATA]",data, "table_name", table_name)
             self.execute_query(f"INSERT INTO {table_name} (datetime, temperature, relative_humidity, rain, surface_pressure, soil_moisture) VALUES (?, ?, ?, ?, ?, ?)", 
                                (int(time.time()), data[0], data[1], data[2], data[3], data[4]))
         except sqlite3.Error as e:
@@ -36,6 +37,7 @@ class DatabaseHandler:
     def update_predictions(self, table_name, predictions: tuple):
         try:
             print("[INFO]: Updating Predictions...")
+            print("[DATA]",predictions)
             self.execute_query(f"INSERT INTO {table_name} (datetime, prediction_24, prediction_48) VALUES (?, ?, ?)", 
                                (int(time.time()), predictions[0], predictions[1]))
         except sqlite3.Error as e:
@@ -48,5 +50,15 @@ class DatabaseHandler:
         else:
             print("[ERROR]: No database connection to close.")
     
+    def get_entries_in_range(self, table_name, start_time, end_time):
+        try:
+            self.cursor.execute(f"""
+            SELECT * FROM {table_name} 
+            WHERE datetime >= ? AND datetime < ?
+            """, (start_time, end_time))
+            return self.cursor.fetchall()
+        except sqlite3.Error as e:
+            print(f"[ERROR]: Failed to fetch entries in range: {e}")
+            return []
     def __del__(self):
         self.close()

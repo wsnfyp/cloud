@@ -9,8 +9,8 @@ from dbhandler import DatabaseHandler  # Import your class
 
 # Initialize database handler
 db_name = "dataset.db"  # Change this to your actual database file
-table_dataset = "hourly_data"  # Replace with actual table name
-table_predictions = "hourly_predictions"  # Replace with actual table name
+table_dataset = "daily_data"  # Replace with actual table name
+table_predictions = "daily_predictions"  # Replace with actual table name
 
 db_handler = DatabaseHandler(os.path.join(os.path.curdir, '..', 'db-handler', 'dataset.db'))
 
