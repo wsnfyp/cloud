@@ -80,7 +80,6 @@ def predict_flood():
     # Just return the predictions - don't update the database here
     return level_24, level_48
 
-    return level_24, level_48
 def predict_flood_hourly():
     # Reinitialize the database connection to ensure it's fresh
     local_db_handler = dbhandler.DatabaseHandler("../db-handler/dataset.db")
