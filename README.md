@@ -1,2 +1,2 @@
 # cloud
-The cloud - website, api-handler, db and predictor
+The cloud - website, api-handler, db and predictor.
